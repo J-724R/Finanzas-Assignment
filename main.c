@@ -11,6 +11,11 @@ typedef struct {
     double close[N_COINS]; // We'll primarily use the closing price
 } WeeklyDataPoint;
 
+typedef struct {
+    double weights[N_COINS]; // Portfolio weights
+    double fitness;          // Fitness value
+} Portfolio;
+
 int load_data_from_csv(char filenames[N_COINS][512], WeeklyDataPoint *data) {
     int current_week = 0;
 
@@ -51,6 +56,32 @@ int load_data_from_csv(char filenames[N_COINS][512], WeeklyDataPoint *data) {
     return 0;
 }
 
+void expected_returns(double weakly_returns[MAX_WEEKS - 1][N_COINS], double expected_returns[N_COINS]) {
+    for (int i = 0; i < N_COINS; i++) {
+        expected_returns[i] = 0.0;
+        for (int j = 0; j < MAX_WEEKS - 1; j++) {
+            expected_returns[i] += weakly_returns[j][i];
+        }
+        expected_returns[i] /= (MAX_WEEKS - 1);
+    }
+}
+
+void calculate_cov_matrix(double weakly_returns[MAX_WEEKS - 1][N_COINS], double expected_returns[N_COINS], double cov_matrix[N_COINS][N_COINS]) {
+    for (int i = 0; i < N_COINS; i++) {
+        for (int j = 0; j < N_COINS; j++) {
+            cov_matrix[i][j] = 0.0;
+            for (int k = 0; k < MAX_WEEKS - 1; k++) {
+                cov_matrix[i][j] += (weakly_returns[k][i] - expected_returns[i])*(weakly_returns[k][j] - expected_returns[j]); 
+            }
+            cov_matrix[i][j] /= (MAX_WEEKS - 1);
+        }
+    }
+};
+
+
+
+
+
 int main() {
     const char *coin_names[] = {
         "Aptos", "Bitcoin", "BNB", "Cardano", "Ethereum", "Solana", "Sui", "XRP"
@@ -81,7 +112,8 @@ int main() {
             printf("\n\n%s Weekly Close Price\n", coin_names[i]);
             for (int j = 0; j < MAX_WEEKS; j++) {
                 if (i < MAX_WEEKS - 1){
-                    weakly_returns[i][j] = (weekly_data[i + 1].close[j] - weekly_data[i].close[j]) / weekly_data[i].close[j];
+                    weakly_returns[j][i] = (weekly_data[j + 1].close[i] - weekly_data[j].close[i]) / weekly_data[j].close[i];
+                    printf("Week %d Return = %f\n", j + 1, weakly_returns[j][i]);
                 }
 
                 printf("Week %d = %.4f USD\n", j+1, weekly_data[j].close[i]);
