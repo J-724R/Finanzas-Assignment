@@ -6,6 +6,9 @@
 #define MAX_WEEKS 60
 #define MAX_LINE_LENGTH 1024
 #define N_COINS 8
+#define POP_SIZE 100
+#define MAX_GENERATIONS 100
+#define MUTATION_RATE 0.01
 
 typedef struct {
     double close[N_COINS]; // We'll primarily use the closing price
@@ -98,7 +101,44 @@ double calculate_fitness(double weights[N_COINS], double expected_returns[N_COIN
     return E_Rp / var_Rp;
 }
 
+void init_population(Portfolio population[N_COINS]) {
+    for (int i = 0; i < POP_SIZE; i++) {
+        double sum = 0.0;
+        for (int j = 0; j < N_COINS; j++) {
+            population[i].weights[j] = (double) rand() / (double) RAND_MAX;
+            sum += population[i].weights[j];
+        }
 
+        //Normalize weights to sum 1
+        for (int j = 0; j < N_COINS; j++) {
+            population[i].weights[j] /= sum;
+        } 
+    }
+}
+
+void selection(Portfolio population[POP_SIZE]){
+    Portfolio new_pop[POP_SIZE];
+    for (int i = 0; i < POP_SIZE; i++) {
+        int a = rand() % POP_SIZE;
+        int b = rand() % POP_SIZE;
+        if (population[a].fitness > population[b].fitness) {
+            new_pop[i] = population[a];
+        } else {
+            new_pop[i] = population[b];
+        }
+    }
+
+    // Copy new_pop to population
+    for (int i = 0; i < POP_SIZE; i++) {
+        population[i] = new_pop[i];
+    }
+}
+
+void crossover(Portfolio population[POP_SIZE]) {
+    for (int i = 0; i < POP_SIZE; i += 2) {
+        
+    }
+}
 
 int main() {
     const char *coin_names[] = {
