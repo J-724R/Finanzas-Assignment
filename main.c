@@ -134,11 +134,19 @@ void selection(Portfolio population[POP_SIZE]){
     }
 }
 
+// Single point crossover
 void crossover(Portfolio population[POP_SIZE]) {
     for (int i = 0; i < POP_SIZE; i += 2) {
-        
+        int crossver_point = rand() % N_COINS;
+        for (int j = 0; j < N_COINS; j++) {
+            double temp = population[i].weights[j];
+            population[i].weights[j] = population[i + 1].weights[j];
+            population[i + 1].weights[j] = temp;
+        }
     }
 }
+
+
 
 int main() {
     const char *coin_names[] = {
