@@ -78,7 +78,25 @@ void calculate_cov_matrix(double weakly_returns[MAX_WEEKS - 1][N_COINS], double 
     }
 };
 
+double calculate_fitness(double weights[N_COINS], double expected_returns[N_COINS], double cov_matrix[N_COINS][N_COINS]) {
+    double E_Rp = 0.0; //Fitness
+    double var_Rp = 0.0; // δ^2(Rp)
 
+    // Expected return E(Rp)
+    for (int i = 0; i < N_COINS; i++) {
+        E_Rp += weights[i] * expected_returns[i];
+    }
+
+    // Variance δ^2(Rp)
+    for (int i = 0; i < N_COINS; i++) {
+        for (int j = 0; j < N_COINS; j++) {
+            var_Rp += weights[i] * weights[j] * cov_matrix[i][j];
+        }
+    }
+
+    // Fitness = E(R_P) / δ^2(R_P)
+    return E_Rp / var_Rp;
+}
 
 
 
@@ -113,7 +131,7 @@ int main() {
             for (int j = 0; j < MAX_WEEKS; j++) {
                 if (i < MAX_WEEKS - 1){
                     weakly_returns[j][i] = (weekly_data[j + 1].close[i] - weekly_data[j].close[i]) / weekly_data[j].close[i];
-                    printf("Week %d Return = %f\n", j + 1, weakly_returns[j][i]);
+                    // printf("Week %d Return = %f\n", j + 1, weakly_returns[j][i]);
                 }
 
                 printf("Week %d = %.4f USD\n", j+1, weekly_data[j].close[i]);
