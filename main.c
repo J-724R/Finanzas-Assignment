@@ -6,6 +6,8 @@
 #define MAX_WEEKS 60
 #define MAX_LINE_LENGTH 1024
 #define N_COINS 8
+
+// Varing parameters
 #define POP_SIZE 100
 #define MAX_GENERATIONS 100
 #define MUTATION_RATE 0.01
@@ -24,7 +26,7 @@ int load_data_from_csv(char filenames[N_COINS][512], WeeklyDataPoint *data) {
 
     for (int i = 0; i < N_COINS; i++) {
         const char *filename = filenames[i];
-        printf("Loading File: %s\n", filename);
+        // printf("Loading File: %s\n", filename);
 
         FILE *file = fopen(filename, "r");
         
@@ -166,8 +168,6 @@ void mutation(Portfolio population[POP_SIZE]) {
 }
 
 int main() {
-    // srand(time(NULL));
-
     const char *coin_names[] = {
         "Aptos", "Bitcoin", "BNB", "Cardano", "Ethereum", "Solana", "Sui", "XRP"
     };
@@ -182,7 +182,6 @@ int main() {
     for (int i = 0; i < N_COINS; i++) {
         snprintf(filenames[i], sizeof(filenames[i]), "%s/Historical_Last_13Month/%s_weekly_historical_data_coinmarketcap.csv",
                  cwd, coin_names[i]);
-        printf("Filename: %s\n", filenames[i]);
     }
 
     WeeklyDataPoint weekly_data[MAX_WEEKS];
@@ -194,16 +193,14 @@ int main() {
 
         for (int i = 0; i < N_COINS; i++)
         {
-            printf("\n\n%s Weekly Close Price\n", coin_names[i]);
+            // printf("\n\n%s Weekly Close Price\n", coin_names[i]);
             for (int j = 0; j < MAX_WEEKS; j++) {
                 if (i < MAX_WEEKS - 1){
                     weakly_returns[j][i] = (weekly_data[j + 1].close[i] - weekly_data[j].close[i]) / weekly_data[j].close[i];
                 }
-
-                printf("Week %d = %.4f USD\n", j+1, weekly_data[j].close[i]);
+                // printf("Week %d = %.4f USD\n", j+1, weekly_data[j].close[i]);
             }
         }
-
 
         //Genetic Algorithm
         double expected_returns[N_COINS];
