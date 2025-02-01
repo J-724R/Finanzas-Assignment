@@ -146,6 +146,26 @@ void crossover(Portfolio population[POP_SIZE]) {
     }
 }
 
+void mutation(Portfolio population[POP_SIZE]) {
+    for (int i = 0; i < POP_SIZE; i++) {
+        for (int j = 0; j < N_COINS; j++) {
+            if ((double)rand() / RAND_MAX < MUTATION_RATE) {
+                population[i].weights[j] = (double)rand() / (double)RAND_MAX;
+            }
+        }
+
+        // Re-normalize weights
+        double sum = 0.0;
+        for (int j = 0; j < N_COINS; j++) {
+            sum += population[i].weights[j];
+        }
+        for (int j = 0; j < N_COINS; j++) {
+            population[i].weights[j] /= sum;
+        }
+    }
+}
+
+
 
 
 int main() {
