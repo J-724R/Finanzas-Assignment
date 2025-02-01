@@ -59,7 +59,7 @@ int load_data_from_csv(char filenames[N_COINS][512], WeeklyDataPoint *data) {
     return 0;
 }
 
-void expected_returns(double weakly_returns[MAX_WEEKS - 1][N_COINS], double expected_returns[N_COINS]) {
+void calculate_expected_returns(double weakly_returns[MAX_WEEKS - 1][N_COINS], double expected_returns[N_COINS]) {
     for (int i = 0; i < N_COINS; i++) {
         expected_returns[i] = 0.0;
         for (int j = 0; j < MAX_WEEKS - 1; j++) {
@@ -165,10 +165,9 @@ void mutation(Portfolio population[POP_SIZE]) {
     }
 }
 
-
-
-
 int main() {
+    // srand(time(NULL));
+
     const char *coin_names[] = {
         "Aptos", "Bitcoin", "BNB", "Cardano", "Ethereum", "Solana", "Sui", "XRP"
     };
@@ -199,13 +198,51 @@ int main() {
             for (int j = 0; j < MAX_WEEKS; j++) {
                 if (i < MAX_WEEKS - 1){
                     weakly_returns[j][i] = (weekly_data[j + 1].close[i] - weekly_data[j].close[i]) / weekly_data[j].close[i];
-                    // printf("Week %d Return = %f\n", j + 1, weakly_returns[j][i]);
                 }
 
                 printf("Week %d = %.4f USD\n", j+1, weekly_data[j].close[i]);
-                /* code */
             }
         }
+
+
+        //Genetic Algorithm
+        double expected_returns[N_COINS];
+        double cov_matrix[N_COINS][N_COINS];
+        calculate_expected_returns(weakly_returns, expected_returns);
+        calculate_cov_matrix(weakly_returns, expected_returns, cov_matrix);        
+
+        Portfolio population[POP_SIZE];
+        init_population(population);
+
+        // Run GA
+        for (int generation = 0; generation < MAX_GENERATIONS; generation++) {
+            // Evaluate fitness
+            for (int i = 0; i < POP_SIZE; i++) {
+                population[i].fitness = calculate_fitness(population[i].weights, expected_returns, cov_matrix);
+            }
+
+            selection(population);
+            crossover(population);
+            mutation(population);
+        }
+
+        // Finding the best portfolio
+        int best_index = 0;
+        double best_fitness = population[0].fitness;
+        for (int i = 1; i < POP_SIZE; i++) {
+            if (population[i].fitness > best_fitness) {
+                best_fitness = population[i].fitness;
+                best_index = i;
+            }
+        }
+
+        printf("\nBest Portfolio:\n");
+        for (int i = 0; i < N_COINS; i++) {
+            printf("%s: %.4f\n", coin_names[i], population[best_index].weights[i]);
+        };
+
+        printf("\nBest Fitness: %.4f\n", best_fitness);
+        
     } else {
         printf("Error loading data.\n");
         return 1;
