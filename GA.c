@@ -9,11 +9,11 @@
 
 // Varing parameters
 #define POP_SIZE 100
-#define MAX_GENERATIONS 100
+#define MAX_GENERATIONS 30
 #define MUTATION_RATE 0.01
 
 typedef struct {
-    double close[N_COINS]; // We'll primarily use the closing price
+    double close[N_COINS]; // Closing price
 } WeeklyDataPoint;
 
 typedef struct {
@@ -191,6 +191,7 @@ int main() {
     if (result == 0) {
         printf("Data loaded successfully!\n");
 
+        // Obtaining weekly returns
         for (int i = 0; i < N_COINS; i++)
         {
             // printf("\n\n%s Weekly Close Price\n", coin_names[i]);
