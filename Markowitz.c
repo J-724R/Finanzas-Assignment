@@ -116,7 +116,9 @@ int main() {
         calculate_expected_returns(weakly_returns, expected_returns);
         calculate_cov_matrix(weakly_returns, expected_returns, cov_matrix);        
 
-
+        // Steps remaining
+        //Optimization with Genetic Algorithm or Quadratic Programming
+        //Efficient Frontier
 
     } else {
         printf("Error loading data.\n");
