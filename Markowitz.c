@@ -2,14 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #define MAX_WEEKS 60
 #define MAX_LINE_LENGTH 1024
 #define N_COINS 8
 
+// Varing parameters
+#define LEARNING_RATE 0.01
+#define MAX_ITERATIONS 1000
+#define TOLERANCE 1e-6
 
 typedef struct {
-    double close[N_COINS]; // We'll primarily use the closing price
+    double close[N_COINS]; // Closing price
 } WeeklyDataPoint;
 
 int load_data_from_csv(char filenames[N_COINS][512], WeeklyDataPoint *data) {
@@ -17,7 +22,6 @@ int load_data_from_csv(char filenames[N_COINS][512], WeeklyDataPoint *data) {
 
     for (int i = 0; i < N_COINS; i++) {
         const char *filename = filenames[i];
-        // printf("Loading File: %s\n", filename);
 
         FILE *file = fopen(filename, "r");
         
@@ -28,8 +32,6 @@ int load_data_from_csv(char filenames[N_COINS][512], WeeklyDataPoint *data) {
 
         char line[MAX_LINE_LENGTH];    
         fgets(line, MAX_LINE_LENGTH, file); // Skip the header line
-    
-    
         int week = 0;
         while (fgets(line, MAX_LINE_LENGTH, file) != NULL && week < MAX_WEEKS) {
             char *token;
@@ -74,9 +76,65 @@ void calculate_cov_matrix(double weakly_returns[MAX_WEEKS - 1][N_COINS], double 
     }
 };
 
+double portfolio_variance(double weights[N_COINS], double cov_matrix[N_COINS][N_COINS]) {
+    double variance = 0.0;
+    for (int i = 0; i < N_COINS; i++) {
+        for (int j = 0; j < N_COINS; j++) {
+            variance += weights[i] * weights[j] * cov_matrix[i][j];
+        }
+    }
+    return variance;
+}
+
+void project_weights(double weights[N_COINS]) {
+    
+}
+
+void gradient_descent(double target_return, double expected_returns[N_COINS], double cov_matrix[N_COINS][N_COINS], double weights[N_COINS]) {
+    // Initialize weights randomly
+    for (int i = 0; i < N_COINS; i++) {
+        weights[i] = 1.0 / N_COINS; // Equal weights as initial guess
+    }
+
+    for (int iter = 0; iter < MAX_ITERATIONS; iter++) {
+        // Calculate gradient of portfolio variance
+        double gradient[N_COINS];
+        for (int i = 0; i < N_COINS; i++) {
+            gradient[i] = 0.0;
+            for (int j = 0; j < N_COINS; j++) {
+                gradient[i] += 2 * weights[j] * cov_matrix[i][j];
+            }
+        }
+
+        // Update weights
+        for (int i = 0; i < N_COINS; i++) {
+            weights[i] -= LEARNING_RATE * gradient[i];
+        }
+
+        // Project weights onto the simplex
+        double sum = 0.0;
+        for (int i = 0; i < N_COINS; i++) {
+            if (weights[i] < 0) weights[i] = 0; // Ensure non-negative weights
+            sum += weights[i];
+        }
+        for (int i = 0; i < N_COINS; i++) {
+            weights[i] /= sum; // Normalize to sum to 1
+        }
+
+        // Check for convergence
+        double current_return = 0.0;
+        for (int i = 0; i < N_COINS; i++) {
+            current_return += weights[i] * expected_returns[i];
+        }
+        if (fabs(current_return - target_return) < TOLERANCE) {
+            break;
+        }
+    }
+}
+
 
 int main() {
-        const char *coin_names[] = {
+    const char *coin_names[] = {
         "Aptos", "Bitcoin", "BNB", "Cardano", "Ethereum", "Solana", "Sui", "XRP"
     };
 
@@ -99,6 +157,7 @@ int main() {
     if (result == 0) {
         printf("Data loaded successfully!\n");
 
+        // Weekly returns
         for (int i = 0; i < N_COINS; i++)
         {
             // printf("\n\n%s Weekly Close Price\n", coin_names[i]);
@@ -116,9 +175,36 @@ int main() {
         calculate_expected_returns(weakly_returns, expected_returns);
         calculate_cov_matrix(weakly_returns, expected_returns, cov_matrix);        
 
-        // Steps remaining
-        //Optimization with Genetic Algorithm or Quadratic Programming
-        //Efficient Frontier
+        //Steps remaining
+        //  Optimization
+        //  Efficient Frontier
+
+        // Defining target return (From were the efficient frontier will be calculated)
+        //! To generate the efficient frontier. Vary the target return and solve the optimization problem repeatedly 
+        double target_return = 0.0;
+        for (int i = 0; i < N_COINS; i++) {
+            target_return += expected_returns[i];
+        }
+        target_return /= N_COINS;
+
+        // Optimize with gradient descent Method
+        double weights[N_COINS];
+        gradient_descent(target_return, expected_returns, cov_matrix, weights);
+
+
+        printf("\nOptimized Portfolio Weights:\n");
+        for (int i = 0; i < N_COINS; i++) {
+            printf("%s: %.4f\n", coin_names[i], weights[i]);
+        }
+
+        // Portfolio variance and return
+        double portfolio_var = portfolio_variance(weights, cov_matrix);
+        double portfolio_return = 0.0;
+        for (int i = 0; i < N_COINS; i++) {
+            portfolio_return += weights[i] * expected_returns[i];
+        }
+        printf("\nPortfolio Return: %.4f\n", portfolio_return);
+        printf("Portfolio Variance: %.4f\n", portfolio_var);
 
     } else {
         printf("Error loading data.\n");

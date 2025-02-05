@@ -8,7 +8,7 @@
 #define N_COINS 8
 
 // Varing parameters
-#define POP_SIZE 100
+#define POP_SIZE 8
 #define MAX_GENERATIONS 30
 #define MUTATION_RATE 0.01
 
@@ -139,8 +139,8 @@ void selection(Portfolio population[POP_SIZE]){
 // Single point crossover
 void crossover(Portfolio population[POP_SIZE]) {
     for (int i = 0; i < POP_SIZE; i += 2) {
-        int crossver_point = rand() % N_COINS;
-        for (int j = 0; j < N_COINS; j++) {
+        int crossover_point = rand() % N_COINS; // Fix typo: crossver_point -> crossover_point
+        for (int j = crossover_point; j < N_COINS; j++) { // Start from crossover_point
             double temp = population[i].weights[j];
             population[i].weights[j] = population[i + 1].weights[j];
             population[i + 1].weights[j] = temp;
@@ -233,6 +233,7 @@ int main() {
                 best_index = i;
             }
         }
+
 
         printf("\nBest Portfolio:\n");
         for (int i = 0; i < N_COINS; i++) {
